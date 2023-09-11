@@ -35,7 +35,7 @@ jobs:
         POSTGRES_USER: django_user
         POSTGRES_PASSWORD: django_password
         POSTGRES_DB: django
-        DB_HOST: 127.0.0.1
+        DB_NAME: 127.0.0.1
         DB_PORT: 5432
       run: |
         python -m flake8 backend/
