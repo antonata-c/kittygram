@@ -1,13 +1,13 @@
 name: Main kittygram workflow
 
-on:
-  push:
-    branches:
-      - main
+on: push
 
 jobs:
   backend_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
     services:
       postgres:
         image: postgres:13.10
@@ -20,10 +20,10 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
@@ -41,9 +41,11 @@ jobs:
         python -m flake8 backend/
         cd backend/
         python manage.py test
+
   build_and_push_to_docker_hub:
     name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs: backend_tests
     steps:
       - name: Check out the repo
@@ -60,7 +62,8 @@ jobs:
         with:
           context: ./backend/
           push: true
-          tags: antonzemtsov/kittygram_backend:latest
+          tags:  ${{ secrets.DOCKER_USERNAME }}/kittygram_backend:latest
+
   frontend_tests:
     runs-on: ubuntu-latest
 
@@ -80,9 +83,11 @@ jobs:
       run: |
         cd frontend/
         npm run test
+
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs: frontend_tests
     steps:
       - name: Check out the repo
@@ -99,10 +104,12 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: antonzemtsov/kittygram_frontend:latest
+          tags:  ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
+
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -118,9 +125,11 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: antonzemtsov/kittygram_gateway:latest
+          tags:  ${{ secrets.DOCKER_USERNAME }}/kittygram_gateway:latest
+
   deploy:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs:
       - build_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
@@ -152,8 +161,10 @@ jobs:
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
           sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
+
   send_message:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs: deploy
     steps:
     - name: Send telegram message
@@ -161,4 +172,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой kittygram успешно выполнен!
+        message: Деплой kittygram успешно выполнен!\nВыполнил деплой: ${{ github.actor }}\nСообщение коммита: ${{ github.event.commits[0].message }}\nСсылка на коммит: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
