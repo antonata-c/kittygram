@@ -19,7 +19,7 @@ Kittygram - социальная сеть для обмена фотографи
 ```shell
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh ./get-docker.sh
-git clone git@github.com:ваш_логин_на_гитхаб/kittygram_final.git
+git clone git@github.com:ваш_логин_на_гитхаб/kittygram.git
 ```
 - В корневой директории создайте файл `.env`, в котором перечислите все переменные окружения, пример находится в файле `.env.example`
 ***
