@@ -3,14 +3,14 @@
 ### Описание:
 Kittygram - социальная сеть для обмена фотографиями любимых питомцев, а именно, котиков.
 
-### Стек используемых технологий:
-- _Python 3.8_
-- _Django REST Framework_
-- _Gunicorn_
-- _Nginx_
-- _PostgreSQL_
-- _Docker_
-- _React_
+### Используемые технологии::
+- ***Python 3.8***
+- ***Django REST Framework***
+- ***Gunicorn***
+- ***Nginx***
+- ***PostgreSQL***
+- ***Docker***
+- ***React***
 
 
 ### Подготовка
